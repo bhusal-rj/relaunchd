@@ -1,0 +1,36 @@
+#Demo configuration filr for the application
+
+# Project name(used for the identification of the application)
+name: "my-application"
+command:
+  # The command to execute the application
+  exec: "node server.js"
+
+  # The working directory of the application (optional)
+  cwd: "./app"
+
+  # Environment variables to set when running the application
+  env:
+    NODE_ENV: "production"
+    PORT: "3000"
+
+# File watching configuration
+watch:
+  # Paths to monitor for changes
+  paths:
+    - "./app"
+    - "./config"
+
+  # Paths to exclude from monitoring
+  exclude:
+    - "*.log"
+    - "*.tmp"
+
+# Process Management
+process:
+  # Whether to run in the background
+  background: true
+  # Maximum number of restarts (0 for unlimited)
+  max_restarts: 5
+  # Time window for restarts (in milliseconds)
+  restart_delay: 1000
