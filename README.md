@@ -36,7 +36,7 @@ Inspired by tools like PM2 and nodemon, it's ideal for hot-reload development wo
 ### Phase 1: Core Foundation
 - [x] Set up Go project structure with modules
 - [x] Implement basic YAML configuration parser
-- [ ] Create file watching system using fsnotify
+- [x] Create file watching system using fsnotify
 - [ ] Build simple process management (start/stop)
 - [ ] Implement basic CLI command structure
 - [ ] Set up logging framework

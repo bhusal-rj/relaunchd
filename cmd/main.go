@@ -2,8 +2,12 @@ package main
 
 import (
 	"bhusal-rj/relaunchd/internal/config"
+	"bhusal-rj/relaunchd/internal/watcher"
 	"fmt"
+	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
@@ -33,6 +37,35 @@ var startCmd = &cobra.Command{
 		}
 		fmt.Printf("Starting application '%s'...\n", cfg.Name)
 		// Implementation for starting the process will go here
+
+		if len(cfg.Watch.Paths) > 0 {
+			log.Println("Setting up the file watcher...")
+			w, err := watcher.New(&cfg.Watch)
+
+			if err != nil {
+				fmt.Println("Error creating watcher:", err)
+				os.Exit(1)
+			}
+
+			err = w.Start()
+
+			if err != nil {
+				fmt.Println("Failed to start watcher:", err)
+				os.Exit(1)
+			}
+			log.Println("File watcher started successfully.")
+
+			//Watch for termination signal
+			sigChan := make(chan os.Signal, 1)
+			signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+			fmt.Println("Press Ctrl+C to stop the watcher...")
+			<-sigChan
+
+			fmt.Println("\n Shutting down the watcher...")
+			if w != nil {
+				w.Stop()
+			}
+		}
 	},
 }
 

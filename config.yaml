@@ -7,7 +7,7 @@ command:
   exec: "node server.js"
 
   # The working directory of the application (optional)
-  cwd: "./app"
+  cwd: "."
 
   # Environment variables to set when running the application
   env:
@@ -18,8 +18,7 @@ command:
 watch:
   # Paths to monitor for changes
   paths:
-    - "./app"
-    - "./config"
+    - "."
 
   # Paths to exclude from monitoring
   exclude:
