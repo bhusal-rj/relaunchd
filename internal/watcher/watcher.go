@@ -9,12 +9,16 @@ import (
 )
 
 type Watcher struct {
-	fsWatcher *fsnotify.Watcher   // File system watcher instance
-	config    *config.WatchConfig // Configuration from the yaml file
-	mu        sync.Mutex          // Mutex for thread-safe operations
-	isRunning bool                // Flag to check if the watcher is running
-	stopChan  chan struct{}       // Channel to signal stopping the watcher
+	fsWatcher     *fsnotify.Watcher   // File system watcher instance
+	config        *config.WatchConfig // Configuration from the yaml file
+	mu            sync.Mutex          // Mutex for thread-safe operations
+	isRunning     bool                // Flag to check if the watcher is running
+	stopChan      chan struct{}       // Channel to signal stopping the watcher
+	changeHandler ChangeHandler       // Handler for file changes
 }
+
+// Change handler is the func that gets called when the file changes
+type ChangeHandler func()
 
 // Create the new file system watcher
 func New(cfg *config.WatchConfig) (*Watcher, error) {
@@ -68,7 +72,14 @@ func (w *Watcher) watch() {
 			// Handle the event
 			if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
 
-				log.Print("There has been an event")
+				log.Printf("File changes detected: %s", event.Name)
+				w.mu.Lock()
+				handler := w.changeHandler
+				w.mu.Unlock()
+
+				if handler != nil {
+					handler()
+				}
 			}
 
 		case err, ok := <-w.fsWatcher.Errors:
@@ -94,4 +105,11 @@ func (w *Watcher) Stop() error {
 	close(w.stopChan)
 	w.mu.Unlock()
 	return nil
+}
+
+// SetsChangeHandler sets the function to call when file changes
+func (w *Watcher) SetChangeHandler(handler ChangeHandler) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.changeHandler = handler
 }

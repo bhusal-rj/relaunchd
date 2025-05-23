@@ -2,12 +2,15 @@ package main
 
 import (
 	"bhusal-rj/relaunchd/internal/config"
+	manager "bhusal-rj/relaunchd/internal/process"
 	"bhusal-rj/relaunchd/internal/watcher"
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -36,35 +39,79 @@ var startCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fmt.Printf("Starting application '%s'...\n", cfg.Name)
-		// Implementation for starting the process will go here
 
+		// Set up signal handling BEFORE starting processes
+		sigChan := make(chan os.Signal, 1)
+		signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+		// Create process manager
+		processManager := manager.NewProcessManager(cfg)
+
+		if err := processManager.Start(); err != nil {
+			fmt.Println("Error starting process:", err)
+			os.Exit(1)
+		}
+
+		fmt.Println("Process started successfully.")
+
+		var fileWatcher *watcher.Watcher
+
+		// Only set up file watching if paths are configured
 		if len(cfg.Watch.Paths) > 0 {
 			log.Println("Setting up the file watcher...")
-			w, err := watcher.New(&cfg.Watch)
 
+			fileWatcher, err = watcher.New(&cfg.Watch)
 			if err != nil {
 				fmt.Println("Error creating watcher:", err)
-				os.Exit(1)
+			} else {
+				fileWatcher.SetChangeHandler(processManager.TriggerRestart)
+
+				if err := fileWatcher.Start(); err != nil {
+					fmt.Println("Failed to start watcher:", err)
+					fileWatcher = nil
+				} else {
+					log.Println("File watcher started successfully.")
+				}
+			}
+		}
+
+		fmt.Println("Press Ctrl+C to stop the application...")
+
+		// Wait for termination signal
+		sig := <-sigChan
+		fmt.Printf("\nReceived signal %v, shutting down...\n", sig)
+
+		// Use a context with timeout for clean shutdown
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		// Stop components with a timeout
+		done := make(chan bool, 1)
+		go func() {
+			// Stop watcher if it was started
+			if fileWatcher != nil {
+				fmt.Println("Stopping the watcher...")
+				fileWatcher.Stop()
 			}
 
-			err = w.Start()
-
+			// Always stop the process
+			fmt.Println("Stopping process...")
+			err := processManager.Stop()
 			if err != nil {
-				fmt.Println("Failed to start watcher:", err)
-				os.Exit(1)
+				fmt.Printf("Error stopping process: %v\n", err)
+			} else {
+				fmt.Println("Process stopped successfully.")
 			}
-			log.Println("File watcher started successfully.")
 
-			//Watch for termination signal
-			sigChan := make(chan os.Signal, 1)
-			signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-			fmt.Println("Press Ctrl+C to stop the watcher...")
-			<-sigChan
+			done <- true
+		}()
 
-			fmt.Println("\n Shutting down the watcher...")
-			if w != nil {
-				w.Stop()
-			}
+		// Wait for clean shutdown or timeout
+		select {
+		case <-done:
+			fmt.Println("Clean shutdown completed.")
+		case <-ctx.Done():
+			fmt.Println("Shutdown timed out, forcing exit.")
 		}
 	},
 }

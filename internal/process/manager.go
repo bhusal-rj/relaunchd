@@ -141,24 +141,30 @@ func (pm *ProcessManager) Stop() error {
 }
 
 func (pm *ProcessManager) Restart() error {
-	if pm.state != StateRunning {
-		return fmt.Errorf("process is not running")
+	// Stop the process if it's running
+	if pm.state == StateRunning {
+		if err := pm.Stop(); err != nil {
+			return fmt.Errorf("failed to stop process: %v", err)
+		}
+
+		// Wait for the short time to ensure the process is stopped
+		time.Sleep(100 * time.Millisecond)
 	}
 
-	if err := pm.Stop(); err != nil {
-		return fmt.Errorf("failed to stop process: %v", err)
-	}
-
-	// Wait for the short time to ensure the process is stopped
-	time.Sleep(100 * time.Millisecond)
-
+	// Start the process
 	return pm.Start()
-
 }
-
 func (pm *ProcessManager) Status() (ProcessState, int) {
 	pm.mutex.Lock()
 	defer pm.mutex.Unlock()
 
 	return pm.state, pm.pid
+}
+
+// TriggerRestart is called by the watcher when files change
+func (pm *ProcessManager) TriggerRestart() {
+	log.Println("File change detected, restarting process...")
+	if err := pm.Restart(); err != nil {
+		log.Printf("Error restarting process: %v", err)
+	}
 }
