@@ -37,9 +37,9 @@ Inspired by tools like PM2 and nodemon, it's ideal for hot-reload development wo
 - [x] Set up Go project structure with modules
 - [x] Implement basic YAML configuration parser
 - [x] Create file watching system using fsnotify
-- [ ] Build simple process management (start/stop)
-- [ ] Implement basic CLI command structure
-- [ ] Set up logging framework
+- [x] Build simple process management (start/stop)
+- [x] Implement basic CLI command structure
+
 
 ### Phase 2: Process Management
 - [ ] Develop background process handling with PID tracking

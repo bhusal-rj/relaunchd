@@ -3,6 +3,8 @@ package watcher
 import (
 	"bhusal-rj/relaunchd/internal/config"
 	"log"
+	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/fsnotify/fsnotify"
@@ -38,17 +40,46 @@ func New(cfg *config.WatchConfig) (*Watcher, error) {
 // Start the monitoring of the specified paths
 func (w *Watcher) Start() error {
 	w.mu.Lock()
+
 	if w.isRunning {
 		w.mu.Unlock()
-		return nil // Alread the watcher is running
+		return nil // Already the watcher is running
 	}
 
 	for _, path := range w.config.Paths {
-		err := w.fsWatcher.Add(path)
+		//Walk through the directory and add all the subdirectories
+		err := filepath.Walk(path, func(subPath string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if info.IsDir() {
+				// Check if directory should be excluded
+				for _, pattern := range w.config.Exclude {
+					matched, err := filepath.Match(pattern, info.Name())
+					if err != nil {
+						return err
+					}
+					if matched {
+						log.Printf("Skipping excluded directory: %s (matched pattern: %s)", subPath, pattern)
+						return filepath.SkipDir
+					}
+				}
+
+				// Add directory to watcher after checking all exclusion patterns
+				if err := w.fsWatcher.Add(subPath); err != nil {
+					return err
+				}
+				// log.Printf("Watching directory: %s", subPath)
+			}
+			return nil
+		})
+
 		if err != nil {
 			w.mu.Unlock()
 			return err
 		}
+
 	}
 	w.isRunning = true
 	w.mu.Unlock()
@@ -69,10 +100,31 @@ func (w *Watcher) watch() {
 			if !ok {
 				return
 			}
-			// Handle the event
+
+			// Check if this file should be excluded based on patterns
+			filename := filepath.Base(event.Name)
+			excluded := false
+
+			for _, pattern := range w.config.Exclude {
+				matched, err := filepath.Match(pattern, filename)
+				if err == nil && matched {
+					// log.Printf("Ignoring excluded file: %s (matched pattern: %s)", event.Name, pattern)
+					excluded = true
+					break
+				}
+			}
+
+			// Skip this event if the file is excluded
+			if excluded {
+				continue
+			}
+
+			// Handle the event for non-excluded files
 			if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
 
 				log.Printf("File changes detected: %s", event.Name)
+
+				// Call the change handler if it is set
 				w.mu.Lock()
 				handler := w.changeHandler
 				w.mu.Unlock()

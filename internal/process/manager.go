@@ -101,7 +101,7 @@ func (pm *ProcessManager) Start() error {
 		_ = pm.cmd.Wait()
 
 		pm.mutex.Lock()
-
+		defer pm.mutex.Unlock()
 		if pm.state == StateRunning {
 			pm.state = StateStopped
 			log.Printf("Process with PID %d has stopped\n", pm.pid)
@@ -142,6 +142,7 @@ func (pm *ProcessManager) Stop() error {
 
 func (pm *ProcessManager) Restart() error {
 	// Stop the process if it's running
+	log.Println(pm.state)
 	if pm.state == StateRunning {
 		if err := pm.Stop(); err != nil {
 			return fmt.Errorf("failed to stop process: %v", err)
