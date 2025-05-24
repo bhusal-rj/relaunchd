@@ -129,7 +129,90 @@ var stopCmd = &cobra.Command{
 		// Implementation for stopping the process will go here
 	},
 }
+var initCmd = &cobra.Command{
+	Use:   "init",
+	Short: "Generate a default configuration file",
+	Long:  `Creates a default config.yaml file in the current directory to help you get started.`,
+	Run: func(cmd *cobra.Command, args []string) {
+		targetPath := "config.yaml"
+		if configPath != "config.yaml" {
+			targetPath = configPath
+		}
 
+		// Check if file already exists
+		if _, err := os.Stat(targetPath); err == nil {
+			fmt.Printf("Configuration file already exists at %s\n", targetPath)
+			fmt.Print("Do you want to overwrite it? (y/N): ")
+
+			var response string
+			fmt.Scanln(&response)
+
+			if response != "y" && response != "Y" {
+				fmt.Println("Operation cancelled.")
+				return
+			}
+		}
+
+		// Template for default config
+		defaultConfig := `# relaunchd configuration file
+# Generated on %s
+
+# Project name (used for identification)
+name: "my-application"
+
+# Command configuration
+command:
+  # The command to execute
+  exec: "node server.js"
+  
+  # Working directory (optional, defaults to ".")
+  cwd: "."
+  
+  # Environment variables
+  env:
+    NODE_ENV: "development"
+    PORT: "3000"
+
+# File watching configuration
+watch:
+  # Paths to monitor for changes (can use glob patterns)
+  paths:
+    - "."
+  
+  # Paths to exclude from monitoring
+  exclude:
+    - "node_modules/**"
+    - "*.log"
+    - "*.tmp"
+    - ".git/**"
+
+# Process management configuration
+process:
+  # Whether to run in the background
+  background: false
+  
+  # Maximum number of restarts (0 for unlimited)
+  max_restarts: 10
+  
+  # Delay between restarts (milliseconds)
+  restart_delay: 1000
+`
+		// Format the config with the current date/time
+		formattedConfig := fmt.Sprintf(defaultConfig, time.Now().Format("2006-01-02 15:04:05"))
+
+		// Write the config to file
+		err := os.WriteFile(targetPath, []byte(formattedConfig), 0644)
+		if err != nil {
+			fmt.Printf("Error creating config file: %v\n", err)
+			os.Exit(1)
+		}
+
+		fmt.Printf("Configuration file created at: %s\n", targetPath)
+		fmt.Println("Edit this file to customize your application settings.")
+		fmt.Println("\nStart your application with:")
+		fmt.Printf("  relaunchd start --config %s\n", targetPath)
+	},
+}
 var statusCmd = &cobra.Command{
 	Use:   "status",
 	Short: "Show the status of processes",
@@ -153,6 +236,7 @@ func init() {
 	rootCmd.AddCommand(startCmd)
 	rootCmd.AddCommand(stopCmd)
 	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(initCmd) // Add the new init command
 
 	// Remove the completion command
 	rootCmd.CompletionOptions.DisableDefaultCmd = true
