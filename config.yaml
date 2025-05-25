@@ -1,35 +1,42 @@
-#Demo configuration filr for the application
+# relaunchd configuration file
+# Generated on 2025-05-24 08:47:26
 
-# Project name(used for the identification of the application)
+# Project name (used for identification)
 name: "my-application"
+
+# Command configuration
 command:
-  # The command to execute the application
+  # The command to execute
   exec: "node server.js"
-
-  # The working directory of the application (optional)
+  
+  # Working directory (optional, defaults to ".")
   cwd: "."
-
-  # Environment variables to set when running the application
+  
+  # Environment variables
   env:
-    NODE_ENV: "production"
+    NODE_ENV: "development"
     PORT: "3000"
 
 # File watching configuration
 watch:
-  # Paths to monitor for changes
+  # Paths to monitor for changes (can use glob patterns)
   paths:
     - "."
-
+  
   # Paths to exclude from monitoring
   exclude:
+    - "node_modules/**"
     - "*.log"
     - "*.tmp"
+    - ".git/**"
 
-# Process Management
+# Process management configuration
 process:
   # Whether to run in the background
-  background: true
+  background: false
+  
   # Maximum number of restarts (0 for unlimited)
-  max_restarts: 5
-  # Time window for restarts (in milliseconds)
+  max_restarts: 10
+  
+  # Delay between restarts (milliseconds)
   restart_delay: 1000
