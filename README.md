@@ -42,7 +42,7 @@ Inspired by tools like PM2 and nodemon, it's ideal for hot-reload development wo
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/relaunchd.git
+git clone https://github.com/bhusal-rj/relaunchd.git
 cd relaunchd
 
 # Build the binary
@@ -56,7 +56,7 @@ sudo mv relaunchd /usr/local/bin/ # Linux/macOS
 #### Using Go Install
 
 ```bash
-go install github.com/yourusername/relaunchd/cmd/relaunchd@latest
+go install github.com/bhusal-rj/relaunchd/cmd/relaunchd@latest
 ```
 
 ### Basic Usage
