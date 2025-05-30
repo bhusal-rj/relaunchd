@@ -248,6 +248,13 @@ func main() {
 	fmt.Printf("relaunchd %s\n", version)
 	fmt.Println("Lightweight process manager and file watcher")
 
+	// Setup signal handling for graceful shutdown
+	manager.SetupSignalHandling(func() {
+		fmt.Println("Received termination signal, shutting down...")
+		// Stop your process manager here
+		os.Exit(0)
+	})
+
 	// Execute the root commands
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println("Error:", err)

@@ -217,6 +217,7 @@ go run cmd/relaunchd/main.go --debug start
 
 ### Phase 2: Process Management
 - [ ] Develop background process handling with PID tracking
+- [ ] Process Dependency Management
 - [ ] Implement graceful shutdown mechanisms
 - [ ] Add signal handling (SIGTERM, SIGINT, etc.)
 - [ ] Create process status reporting functionality
@@ -230,6 +231,7 @@ go run cmd/relaunchd/main.go --debug start
 - [ ] Develop file type filtering
 - [ ] Implement watch exclusion patterns
 - [ ] Add support for multiple watch configurations
+- [ ] Log Rotation
 
 ### Phase 4: Full CLI Experience
 - [ ] Complete all CLI commands (start, stop, status, list)

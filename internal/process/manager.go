@@ -1,10 +1,11 @@
-package manager
+package process
 
 import (
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -120,18 +121,42 @@ func (pm *ProcessManager) Stop() error {
 	defer pm.mutex.Unlock()
 
 	// If the process is not running there is no need to stop it so return an error
-	if pm.state != StateRunning || pm.cmd == nil {
-		return fmt.Errorf("process is not running")
+	if pm.state != StateRunning || pm.cmd == nil || pm.cmd.Process == nil {
+		pm.state = StateStopped
+		return nil
 	}
 
-	//Try the graceful termination of the process
-	// SIGTERM is the signal to terminate a process gracefully
-	if err := pm.cmd.Process.Signal((syscall.SIGTERM)); err != nil {
-		log.Printf("Failed to send SIGTERM to process: %v", err)
+	// TODO:- Setup grace period for process termination
+	gracePeriod := 0 * time.Millisecond
 
-		if err := pm.cmd.Process.Kill(); err != nil {
-			log.Printf("Failed to kill process: %v", err)
+	// Platform-specific process termination
+	if runtime.GOOS == "windows" {
+		// Windows: Kill process (can't send SIGTERM)
+		err := pm.cmd.Process.Kill()
+		if err != nil {
 			return fmt.Errorf("failed to kill process: %v", err)
+		}
+	} else {
+		// Unix: Send SIGTERM first, then SIGKILL if needed
+		err := pm.cmd.Process.Signal(syscall.SIGTERM)
+		if err != nil {
+			// If SIGTERM fails, force kill
+			pm.cmd.Process.Kill()
+		} else {
+			// Wait for the process to exit gracefully
+			done := make(chan error, 1)
+			go func() {
+				done <- pm.cmd.Wait()
+			}()
+
+			// Wait for grace period or process termination
+			select {
+			case <-done:
+				// Process exited
+			case <-time.After(gracePeriod):
+				// Grace period expired, force kill
+				pm.cmd.Process.Kill()
+			}
 		}
 	}
 
