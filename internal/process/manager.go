@@ -1,7 +1,6 @@
 package manager
 
 import (
-	"bhusal-rj/relaunchd/internal/config"
 	"fmt"
 	"log"
 	"os"
@@ -10,6 +9,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/bhusal-rj/relaunchd/internal/config"
 )
 
 type ProcessState string

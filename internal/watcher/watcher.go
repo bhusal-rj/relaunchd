@@ -1,11 +1,12 @@
 package watcher
 
 import (
-	"bhusal-rj/relaunchd/internal/config"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/bhusal-rj/relaunchd/internal/config"
 
 	"github.com/fsnotify/fsnotify"
 )
