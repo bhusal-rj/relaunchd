@@ -66,7 +66,7 @@ go install github.com/bhusal-rj/relaunchd/cmd/relaunchd@latest
 
 ```powershell
 # Build on Windows
-go build -o relaunchd.exe cmd/relaunchd/main.go
+go build -o relaunchd.exe ./cmd/relaunchd/main.go
 
 # Initialize project
 relaunchd.exe init

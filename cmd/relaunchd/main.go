@@ -1,9 +1,6 @@
 package main
 
 import (
-	"bhusal-rj/relaunchd/internal/config"
-	manager "bhusal-rj/relaunchd/internal/process"
-	"bhusal-rj/relaunchd/internal/watcher"
 	"context"
 	"fmt"
 	"log"
@@ -11,6 +8,10 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/bhusal-rj/relaunchd/internal/config"
+	manager "github.com/bhusal-rj/relaunchd/internal/process"
+	"github.com/bhusal-rj/relaunchd/internal/watcher"
 
 	"github.com/spf13/cobra"
 )
