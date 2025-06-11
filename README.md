@@ -100,7 +100,7 @@ relaunchd init --config myapp.yaml
 name: "my-application"
 
 command:
-  exec: "go run main.go"  # Your application command
+  exec: "go run main.go" # Your application command
   cwd: "."
   env:
     PORT: "8080"
@@ -208,14 +208,15 @@ go run cmd/relaunchd/main.go --debug start
 ## 🗺️ Development Roadmap
 
 ### Phase 1: Core Foundation
+
 - [x] Set up Go project structure with modules
 - [x] Implement basic YAML configuration parser
 - [x] Create file watching system using fsnotify
 - [x] Build simple process management (start/stop)
 - [x] Implement basic CLI command structure
 
-
 ### Phase 2: Process Management
+
 - [ ] Develop background process handling with PID tracking
 - [ ] Process Dependency Management
 - [ ] Implement graceful shutdown mechanisms
@@ -225,6 +226,7 @@ go run cmd/relaunchd/main.go --debug start
 - [ ] Add process restart capabilities
 
 ### Phase 3: Advanced File Watching
+
 - [ ] Implement glob pattern support
 - [ ] Add directory recursion capabilities
 - [ ] Create file change debouncing mechanism
@@ -234,6 +236,7 @@ go run cmd/relaunchd/main.go --debug start
 - [ ] Log Rotation
 
 ### Phase 4: Full CLI Experience
+
 - [ ] Complete all CLI commands (start, stop, status, list)
 - [ ] Add command flags and options
 - [ ] Implement configuration validation
@@ -242,6 +245,7 @@ go run cmd/relaunchd/main.go --debug start
 - [ ] Implement verbosity levels for output
 
 ### Phase 5: Cross-Platform Compatibility
+
 - [ ] Test and fix Windows-specific issues
 - [ ] Ensure macOS compatibility
 - [ ] Handle path differences between operating systems
@@ -249,6 +253,7 @@ go run cmd/relaunchd/main.go --debug start
 - [ ] Create platform-specific installation guides
 
 ### Phase 6: Polish and Release
+
 - [ ] Create comprehensive documentation
 - [ ] Build example configurations
 - [ ] Implement version command
